@@ -8,6 +8,7 @@ const autoprefixer = require('autoprefixer');
 const mediaquery = require('postcss-combine-media-query');
 const cssnano = require('cssnano');
 const htmlMinify = require('html-minifier');
+const gulpPug = require('gulp-pug');
 
 function serve() {
   browserSync.init({
@@ -64,18 +65,29 @@ function clean() {
 }
 
 function watchFiles() {
+  gulp.watch(['src/oages/**/*.pug'], pug);
   gulp.watch(['src/**/*.html'], html);
   gulp.watch(['src/blocks/**/*.css'], css);
   gulp.watch(['src/images/**/*.{jpg,png,svg,gif,ico,webp,avif}'], images);
 }
 
-const build = gulp.series(clean, gulp.parallel(html, css, images));
+function pug() {
+  return gulp.src('src/pages/**/*.pug')
+        .pipe(gulpPug({
+          pretty: true
+        }))
+        .pipe(gulp.dest('dist/'))
+        .pipe(browserSync.reload({stream: true}));
+} 
+
+const build = gulp.series(clean, gulp.parallel(pug, css, images));
 const watchapp = gulp.parallel(build, watchFiles, serve);
 
 exports.html = html;
 exports.css = css;
 exports.images = images;
 exports.clean = clean;
+exports.pug = pug;
 
 exports.build = build;
 exports.watchapp = watchapp;
